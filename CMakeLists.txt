@@ -494,6 +494,7 @@ IF(MACOSX)
         )
         file(GLOB COCOA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
             gui_cocoa.*
+            gui_cocoa/*
             misc/MojoSetup.xib
         )
         source_group("Cocoa GUI" FILES ${COCOA_SOURCES})
