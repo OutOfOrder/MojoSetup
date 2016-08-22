@@ -153,13 +153,12 @@ static boolean loadDynamicGuiPlugin(PluginList *plugins, MojoArchive *ar)
     return rc;
 } // loadDynamicGuiPlugin
 
-
-static void loadDynamicGuiPlugins(PluginList *plugins)
+static void loadDynamicGuiPlugins(MojoArchive* archive, PluginList *plugins)
 {
-    if (GBaseArchive->enumerate(GBaseArchive))
+    if (archive->enumerate(archive))
     {
         const MojoArchiveEntry *entinfo;
-        while ((entinfo = GBaseArchive->enumNext(GBaseArchive)) != NULL)
+        while ((entinfo = archive->enumNext(archive)) != NULL)
         {
             if (entinfo->type != MOJOARCHIVE_ENTRY_FILE)
                 continue;
@@ -167,11 +166,26 @@ static void loadDynamicGuiPlugins(PluginList *plugins)
             if (strncmp(entinfo->filename, "guis/", 5) != 0)
                 continue;
 
-            loadDynamicGuiPlugin(plugins, GBaseArchive);
+            loadDynamicGuiPlugin(plugins, archive);
         } // while
     } // if
 } // loadDynamicGuiPlugins
 
+static void loadGuiPathGuiPlugins(PluginList *plugins)
+{
+    const char *guipath;
+    MojoArchive *ar;
+
+    if ((guipath = cmdlinestr("guipath", "MOJOSETUP_GUIPATH", NULL))!=NULL)
+    {
+        ar = MojoArchive_newFromDirectory(guipath);
+        if (ar) {
+            loadDynamicGuiPlugins(ar, plugins);
+        }
+        ar->close(ar);
+        ar = NULL;
+    }
+} // loadGuiPathGuiPlugins
 
 const MojoGui *MojoGui_initGuiPlugin(void)
 {
@@ -184,7 +198,8 @@ const MojoGui *MojoGui_initGuiPlugin(void)
     memset(&plugins, '\0', sizeof (plugins));
     assert(GGui == NULL);
 
-    loadDynamicGuiPlugins(&plugins);
+    loadGuiPathGuiPlugins(&plugins);
+    loadDynamicGuiPlugins(GBaseArchive, &plugins);
     loadStaticGuiPlugins(&plugins);
 
     pluginDetails = initGuiPluginsByPriority(&plugins);

@@ -997,6 +997,37 @@ local function install_control_app(desc, key)
         ent = MojoSetup.archive.enumnext(base)
     end
 
+    -- check alternate GUI directory
+    local guipath = MojoSetup.cmdlinestr("guipath", "MOJOSETUP_GUIPATH")
+    if guipath ~= nil then
+        MojoSetup.loginfo("Checking GUI Path: '" .. guipath .. "'")
+        local guiarchive = MojoSetup.archive.fromdir(guipath)
+        MojoSetup.archive.enumerate(guiarchive)
+        local ent = MojoSetup.archive.enumnext(guiarchive)
+
+        while ent ~= nil do
+            -- Make sure this is in a directory we want to write out...
+            local should_write = false
+
+            if (ent.filename ~= nil) and (ent.filename ~= "") then
+                if string.find(ent.filename, "^guis/") ~= nil then
+                    should_write = true
+                end
+            end
+
+            if should_write then
+                dst = MojoSetup.controldir .. "/" .. ent.filename
+                -- don't overwrite preexisting stuff.
+                if not MojoSetup.platform.exists(dst) then
+                    install_archive_entity(dst, ent, guiarchive, desc, key, perms)
+                end
+            end
+
+            ent = MojoSetup.archive.enumnext(guiarchive)
+        end
+        MojoSetup.archive.close(guiarchive)
+    end
+
     -- okay, we're written out.
 end
 
