@@ -1270,8 +1270,20 @@ boolean MojoPlatform_uninstallDesktopMenuItem(const char *data)
 
 int MojoPlatform_exec(const char *cmd)
 {
-    execl(cmd, cmd, NULL);
-    return errno;
+    pid_t pid = fork();
+    if (pid == -1) // fork failed
+    {
+        return errno;
+    }
+    else if (pid == 0) //child process
+    {
+        execl(cmd, cmd, NULL);
+        _Exit(1);
+    }
+    else // parent process
+    {}
+
+    return 0;
 } // MojoPlatform_exec
 
 
