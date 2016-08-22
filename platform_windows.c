@@ -500,6 +500,10 @@ boolean MojoPlatform_launchBrowser(const char *url)
     return (((int) ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL)) > 32);
 } // MojoPlatform_launchBrowser
 
+const char* MojoPlatform_findProduct(const char* productID)
+{
+    return NULL;
+}
 
 boolean MojoPlatform_installDesktopMenuItem(const char *data)
 {

@@ -1449,7 +1449,11 @@ local function do_install(install)
             for i,v in ipairs(recommended_cfg) do
                 if MojoSetup.platform.isdir(v) then
                     if MojoSetup.platform.writable(v) then
-                        recommend[#recommend+1] = v .. "/" .. install.id
+                        if install.appendid then
+                            recommend[#recommend+1] = v .. "/" .. install.id
+                        else
+                            recommend[#recommend+1] = v
+                        end
                     end
                 end
             end
@@ -1848,7 +1852,11 @@ local function do_install(install)
     end
 
     -- Now make all this happen.
-    start_gui(install.description, install.id, install.splash, install.splashpos)
+    local package_name = nil
+    if install.appendid then
+      package_name = install.id
+    end
+    start_gui(install.description, package_name, install.splash, install.splashpos)
 
     -- Make the stages available elsewhere.
     MojoSetup.stages = stages

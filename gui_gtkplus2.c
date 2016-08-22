@@ -187,7 +187,11 @@ static void signal_browse_clicked(GtkButton *_button, gpointer data)
         gchar *utfname;
 
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        fname_with_package = g_build_filename(filename, package_name, NULL);
+        if (package_name) {
+            fname_with_package = g_build_filename(filename, package_name, NULL);
+        } else {
+            fname_with_package = g_strdup(filename);
+        }
 
         utfname = g_filename_to_utf8(fname_with_package, -1, NULL, NULL, NULL);
         gtk_combo_box_prepend_text(GTK_COMBO_BOX(destination), utfname);
@@ -623,7 +627,12 @@ static boolean MojoGui_gtkplus2_start(const char *title,
                                       const char *_package_name,
                                       const MojoGuiSplash *splash)
 {
-    package_name = xstrdup(_package_name);
+    if (_package_name)
+    {
+        package_name = xstrdup(_package_name);
+    } else {
+        package_name = NULL;
+    }
     gtkwindow = create_gtkwindow(title, splash);
     return (gtkwindow != NULL);
 } // MojoGui_gtkplus2_start
@@ -649,7 +658,8 @@ static void MojoGui_gtkplus2_stop(void)
     next = NULL;
     finish = NULL;
     splash = NULL;
-    free(package_name);
+    if (package_name)
+        free(package_name);
     package_name = NULL;
 } // MojoGui_gtkplus2_stop
 

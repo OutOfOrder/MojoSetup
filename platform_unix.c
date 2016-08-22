@@ -9,7 +9,8 @@
 #if PLATFORM_UNIX
 
 #if PLATFORM_MACOSX
-#include <Carbon/Carbon.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreServices/CoreServices.h>
 #undef true
 #undef false
 #endif
@@ -1243,6 +1244,33 @@ boolean MojoPlatform_launchBrowser(const char *url)
 #endif
 } // MojoPlatform_launchBrowser
 
+const char* MojoPlatform_findProduct(const char* productID)
+{
+#if PLATFORM_MACOSX
+    const char* ret = NULL;
+    char buf[PATH_MAX];
+	OSStatus rc;
+	CFURLRef url = NULL;
+	CFStringRef bundleID = CFStringCreateWithBytes(NULL, (const UInt8 *)productID,
+                                             strlen(productID), kCFStringEncodingUTF8, NULL);
+	rc = LSFindApplicationForInfo(kLSUnknownCreator, bundleID, NULL, NULL, &url);
+    CFRelease(bundleID);
+    if (rc == noErr)
+    {
+        if (CFURLGetFileSystemRepresentation(url, true, (UInt8*)buf, PATH_MAX))
+        {
+            if (strstr(buf, "/.Trash/") == NULL)
+            {
+                ret = buf;
+            }
+        }
+    }
+
+    return ret;
+#else // currently only implemnted for OS X
+    return NULL;
+#endif
+}
 
 boolean MojoPlatform_installDesktopMenuItem(const char *data)
 {

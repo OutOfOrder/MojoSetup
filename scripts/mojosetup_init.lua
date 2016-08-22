@@ -295,6 +295,7 @@ function Setup.Package(tab)
     {
         { "vendor", nil, mustExist, mustBeString, cantBeEmpty },
         { "id", nil, mustExist, mustBeString, cantBeEmpty },
+        { "appendid", true, mustBeBool },
         { "disabled", nil, mustBeBool },
         { "description", nil, mustExist, mustBeString, cantBeEmpty },
         { "version", nil, mustExist, mustBeString, cantBeEmpty },
@@ -352,7 +353,7 @@ function Setup.Package(tab)
             is detected as already installed the installation will fail.
             Important: This attribute can't be mixed with <component> elements.
 
- appbundle  (CARBON ONLY) If this is "yes", the destination folder does not include the product
+ appbundle  (COCOA ONLY) If this is "yes", the destination folder does not include the product
             name as part of the path.  An application bundle is typically installed much like
             a single file would be...and so is treated as such.
             
@@ -362,7 +363,7 @@ function Setup.Package(tab)
  manpages   If set to "yes", then the user will be prompted for the install pages installation path.
             Should be used when using the MANPAGE element described below.
 
- appbundleid  (CARBON ONLY) This string means that you are installing new files into an existing
+ appbundleid  (COCOA ONLY) This string means that you are installing new files into an existing
               Application Bundle. If the bundle isn't found, the installation aborts, otherwise, all
               files are added relative to the base of the app bundle. The string specified here is
               the app bundle's CFBundleIdentifier entry in its Info.plist file. LaunchServices are
@@ -370,7 +371,7 @@ function Setup.Package(tab)
               if LaunchServices fails to find it. This is all MacOS-specific, and unrelated to the
               "component" attribute.
 
- appbundledesc (CARBON ONLY) This string is used with the "appbundleid" attribute...it's a human
+ appbundledesc (COCOA ONLY) This string is used with the "appbundleid" attribute...it's a human
                readable text describing the app bundle in question.
 ]]--
 

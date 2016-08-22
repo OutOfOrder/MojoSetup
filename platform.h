@@ -231,6 +231,12 @@ void MojoPlatform_dlclose(void *lib);
 //  the browser will inform the user if there's a problem loading the URL.
 boolean MojoPlatform_launchBrowser(const char *url);
 
+// Find the existing install of the product ID.
+//  Currently only implemented for OS X and expects an OS X bundle ID
+//  and uses launch services to locate the application on the users system.
+//  This function should return nil if the product could not be found
+const char* MojoPlatform_findProduct(const char *bundleID);
+
 // Add a menu item to the Application menu or Start bar or whatever.
 //  (data) is 100% platform dependent right now, and this interface will
 //  likely change as we come to understand various systems' needs better.

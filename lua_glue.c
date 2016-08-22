@@ -620,6 +620,11 @@ static int luahook_launchbrowser(lua_State *L)
     return retvalBoolean(L, MojoPlatform_launchBrowser(url));
 } // luahook_launchbrowser
 
+static int luahook_findproduct(lua_State *L)
+{
+    const char *bundleID = luaL_checkstring(L, 1);
+    return retvalString(L, MojoPlatform_findProduct(bundleID));
+}
 
 static int luahook_verifyproductkey(lua_State *L)
 {
@@ -1230,7 +1235,7 @@ static void prepareSplash(MojoGuiSplash *splash, const char *fname,
 static int luahook_gui_start(lua_State *L)
 {
     const char *title = luaL_checkstring(L, 1);
-    const char *package_name = luaL_checkstring(L, 2);
+    const char *package_name = luaL_optstring(L, 2, NULL);
     const char *splashfname = lua_tostring(L, 3);
     const char *splashpos = lua_tostring(L, 4);
     boolean rc = false;
@@ -1812,6 +1817,7 @@ boolean MojoLua_initLua(void)
         set_cfunc(luaState, luahook_isvalidperms, "isvalidperms");
         set_cfunc(luaState, luahook_checksum, "checksum");
         set_cfunc(luaState, luahook_strcmp, "strcmp");
+        set_cfunc(luaState, luahook_findproduct, "findproduct");
 
         // Set some information strings...
         lua_newtable(luaState);
