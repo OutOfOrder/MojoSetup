@@ -31,6 +31,9 @@ CREATE_MOJOGUI_ENTRY_POINT(gtkplus2)
 #include <gtk/gtk.h>
 #define format entry->format
 
+#define MAX_INSTALLER_WIDTH 800
+#define MAX_INSTALLER_HEIGHT 600
+
 typedef enum
 {
     PAGE_INTRO,
@@ -470,9 +473,22 @@ static GtkWidget *create_gtkwindow(const char *title,
     gtk_box_pack_start(GTK_BOX(box), notebook, TRUE, TRUE, 0);
     gtk_notebook_set_show_tabs(GTK_NOTEBOOK(notebook), FALSE);
     gtk_notebook_set_show_border(GTK_NOTEBOOK(notebook), FALSE);
-    gtk_widget_set_size_request(notebook,
-                                (gint) (((float) gdk_screen_width()) * 0.4),
-                                (gint) (((float) gdk_screen_height()) * 0.4));
+    gint width = (gint) (((float) gdk_screen_width()) * 0.4);
+    gint height = (gint) (((float) gdk_screen_height()) * 0.4);
+    if (width > MAX_INSTALLER_WIDTH) // scale it back
+    {
+        float scale = width / (float)MAX_INSTALLER_WIDTH;
+        width /= scale;
+        height /= scale;
+    }
+    if (height > MAX_INSTALLER_HEIGHT) //scale it back
+    {
+        float scale = height / (float)MAX_INSTALLER_HEIGHT;
+        width /= scale;
+        height /= scale;
+    }
+
+    gtk_widget_set_size_request(notebook, width, height);
 
     widget = gtk_hbutton_box_new();
     gtk_widget_show(widget);
