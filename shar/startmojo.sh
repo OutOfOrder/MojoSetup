@@ -38,13 +38,13 @@ launchfrontend()
     DIR="$1"
 
     MOJOBIN="${DIR}/mojosetup"
-    if [ -f ${MOJOBIN} ]; then
+    if [ -f "${MOJOBIN}" ]; then
         echo trying mojosetup in ${DIR}
-        chmod +x $MOJOBIN
-        export MOJOSETUP_BASE=$MAKESELF_SHAR
-        export MOJOSETUP_GUIPATH=$DIR
-        export MOJOSETUP_MARKER=`pwd`/frontendstarted
-        `pwd`/$MOJOBIN $ARGS
+        chmod +x "$MOJOBIN"
+        export MOJOSETUP_BASE="$MAKESELF_SHAR"
+        export MOJOSETUP_GUIPATH="$DIR"
+        export MOJOSETUP_MARKER="`pwd`/frontendstarted"
+        "`pwd`/$MOJOBIN" $ARGS
         RET=$?
         if [ ! -f frontendstarted ]; then
             exit $RET

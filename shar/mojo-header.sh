@@ -16,7 +16,7 @@ filesizes="$filesizes"
 keep=$KEEP
 customtarget=n
 # save off this scripts path so the installer can find it
-export MAKESELF_SHAR=\$( cd \`dirname \$0\` && pwd )/\`basename \$0\`
+export MAKESELF_SHAR="\$( cd "\`dirname "\$0"\`" && pwd )/\`basename "\$0"\`"
 
 print_cmd_arg=""
 if type printf > /dev/null; then
