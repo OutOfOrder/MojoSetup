@@ -696,6 +696,7 @@ static MojoGuiYNAN MojoGui_ncurses_promptynan(const char *title,
 
 
 static boolean MojoGui_ncurses_start(const char *_title,
+                                     const char*_package_name,
                                      const MojoGuiSplash *splash)
 {
     free(title);

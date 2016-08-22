@@ -63,6 +63,7 @@ static GtkWidget *progresslabel = NULL;
 static GtkWidget *finallabel = NULL;
 static GtkWidget *browse = NULL;
 static GtkWidget *splash = NULL;
+static char *package_name = NULL;
 
 static volatile enum
 {
@@ -182,15 +183,18 @@ static void signal_browse_clicked(GtkButton *_button, gpointer data)
 
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
         gchar *filename;
+        gchar *fname_with_package;
         gchar *utfname;
 
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        fname_with_package = g_build_filename(filename, package_name, NULL);
 
-        utfname = g_filename_to_utf8(filename, -1, NULL, NULL, NULL);
+        utfname = g_filename_to_utf8(fname_with_package, -1, NULL, NULL, NULL);
         gtk_combo_box_prepend_text(GTK_COMBO_BOX(destination), utfname);
         gtk_combo_box_set_active(GTK_COMBO_BOX(destination), 0);
 
         g_free(utfname);
+        g_free(fname_with_package);
         g_free(filename);
     }
     
@@ -616,8 +620,10 @@ static GtkWidget *create_gtkwindow(const char *title,
 
 
 static boolean MojoGui_gtkplus2_start(const char *title,
+                                      const char *_package_name,
                                       const MojoGuiSplash *splash)
 {
+    package_name = xstrdup(_package_name);
     gtkwindow = create_gtkwindow(title, splash);
     return (gtkwindow != NULL);
 } // MojoGui_gtkplus2_start
@@ -643,6 +649,8 @@ static void MojoGui_gtkplus2_stop(void)
     next = NULL;
     finish = NULL;
     splash = NULL;
+    free(package_name);
+    package_name = NULL;
 } // MojoGui_gtkplus2_stop
 
 

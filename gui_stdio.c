@@ -221,6 +221,7 @@ static MojoGuiYNAN MojoGui_stdio_promptynan(const char *title, const char *txt,
 
 
 static boolean MojoGui_stdio_start(const char *title,
+                                   const char *package_name,
                                    const MojoGuiSplash *splash)
 {
     printf("%s\n", title);

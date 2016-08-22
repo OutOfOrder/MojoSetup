@@ -1281,12 +1281,12 @@ local function get_productkey(thisstage, maxstage, desc, fmt, verify, dest, mani
 end
 
 
-local function start_gui(desc, splashfname, splashpos)
+local function start_gui(desc, pkg_name, splashfname, splashpos)
     if splashfname ~= nil then
         splashfname = 'meta/' .. splashfname
     end
 
-    if not MojoSetup.gui.start(desc, splashfname, splashpos) then
+    if not MojoSetup.gui.start(desc, pkg_name, splashfname, splashpos) then
         MojoSetup.fatal(_("GUI failed to start"))
     end
 
@@ -1844,7 +1844,7 @@ local function do_install(install)
     end
 
     -- Now make all this happen.
-    start_gui(install.description, install.splash, install.splashpos)
+    start_gui(install.description, install.id, install.splash, install.splashpos)
 
     -- Make the stages available elsewhere.
     MojoSetup.stages = stages
@@ -2091,7 +2091,7 @@ local function uninstaller()
     end
 
     if uninstall_permitted then
-        start_gui(package.description, package.splash, package.splashpos)
+        start_gui(package.description, package.id, package.splash, package.splashpos)
         run_config_defined_hook(package.preuninstall, package)
 
         uninstall_desktop_menu_items(package)

@@ -1230,13 +1230,14 @@ static void prepareSplash(MojoGuiSplash *splash, const char *fname,
 static int luahook_gui_start(lua_State *L)
 {
     const char *title = luaL_checkstring(L, 1);
-    const char *splashfname = lua_tostring(L, 2);
-    const char *splashpos = lua_tostring(L, 3);
+    const char *package_name = luaL_checkstring(L, 2);
+    const char *splashfname = lua_tostring(L, 3);
+    const char *splashpos = lua_tostring(L, 4);
     boolean rc = false;
     MojoGuiSplash splash;
 
     prepareSplash(&splash, splashfname, splashpos);
-    rc = GGui->start(title, &splash);
+    rc = GGui->start(title, package_name, &splash);
     if (splash.rgba != NULL)
         free((void *) splash.rgba);
 

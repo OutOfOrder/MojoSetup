@@ -689,6 +689,7 @@ static MojoGuiYNAN MojoGui_cocoa_promptynan(const char *title,
 
 
 static boolean MojoGui_cocoa_start(const char *title,
+                                   const char *package_name
                                    const MojoGuiSplash *splash)
 {
 printf("start\n");
