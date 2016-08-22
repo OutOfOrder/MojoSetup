@@ -1446,7 +1446,7 @@ local function do_install(install)
             end
 
             recommend = {}
-            for i,v in ipairs(recommended_cfg) do
+            for i,v in pairs(recommended_cfg) do
                 if MojoSetup.platform.isdir(v) then
                     if MojoSetup.platform.writable(v) then
                         if install.appendid then
