@@ -100,7 +100,7 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
 - (int)doReadme:(const char *)title text:(NSString *)text canBack:(boolean)canBack canFwd:(boolean)canFwd;
 - (void)setOptionTreeSensitivity:(MojoGuiSetupOptions *)opts enabled:(boolean)val;
 - (void)optionToggled:(id)toggle;
-- (NSView *)newOptionLevel:(NSView *)box;
+- (NSView *)createNewOptionLevel:(NSView *)box;
 - (void)buildOptions:(MojoGuiSetupOptions *)opts view:(NSView *)box sensitive:(boolean)sensitive;
 - (int)doOptions:(MojoGuiSetupOptions *)opts canBack:(boolean)canBack canFwd:(boolean)canFwd;
 - (char *)doDestination:(const char **)recommends recnum:(int)recnum command:(int *)command canBack:(boolean)canBack canFwd:(boolean)canFwd;
@@ -336,7 +336,7 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
         [panel setCanChooseDirectories:YES];
         [panel setCanChooseFiles:NO];
         if ([panel runModal] == NSOKButton)
-            [DestinationCombo setStringValue:[panel filename]];
+            [DestinationCombo setStringValue:[[panel URL] path]];
     } // browseClicked
 
     - (IBAction)menuQuit:(NSMenuItem *)sender
@@ -419,7 +419,7 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
         [self setOptionTreeSensitivity:opts->child enabled:enabled];
     } // optionToggled
 
-    - (NSView *)newOptionLevel:(NSView *)box
+    - (NSView *)createNewOptionLevel:(NSView *)box
     {
         NSRect frame = NSMakeRect(10, 10, 10, 10);
         NSView *widget = [[NSView alloc] initWithFrame:frame];
@@ -460,11 +460,12 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
                 [widget release];  // (box) owns it now.
                 //!!! FIXME[box sizeToFit];
 
-                childbox = [self newOptionLevel:box];
+                childbox = [self createNewOptionLevel:box];
                 NSButtonCell *prototype = [[NSButtonCell alloc] init];
                 [prototype setButtonType:NSRadioButton];
                 [prototype setAllowsMixedState:NO];
                 NSMatrix *matrix = [[NSMatrix alloc] initWithFrame:frame mode:NSRadioModeMatrix prototype:(NSCell *)prototype numberOfRows:0 numberOfColumns:1];
+                [prototype release];
                 int row = 0;
                 while (kids)
                 {
@@ -481,7 +482,7 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
                         [matrix setToolTip:[NSString stringWithUTF8String:kids->tooltip] forCell:cell];
 
                     if (kids->child != nil)
-                        [self buildOptions:kids->child view:[self newOptionLevel:childbox] sensitive:sensitive];
+                        [self buildOptions:kids->child view:[self createNewOptionLevel:childbox] sensitive:sensitive];
 
                     kids = kids->next_sibling;
                     row++;
@@ -512,7 +513,7 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
                     [widget setToolTip:[NSString stringWithUTF8String:opts->tooltip]];
 
                 if (opts->child != nil)
-                    [self buildOptions:opts->child view:[self newOptionLevel:box] sensitive:((sensitive) && (opts->value))];
+                    [self buildOptions:opts->child view:[self createNewOptionLevel:box] sensitive:((sensitive) && (opts->value))];
             } // else
 
             [self buildOptions:opts->next_sibling view:box sensitive:sensitive];
@@ -538,7 +539,6 @@ static NSAutoreleasePool *GAutoreleasePool = nil;
         while ((obj = (NSView *) [enumerator nextObject]) != nil)
             [obj removeFromSuperviewWithoutNeedingDisplay];
         [OptionsView setNeedsDisplay:YES];
-        [enumerator release];
         [array release];
 
         return retval;
@@ -689,7 +689,7 @@ static MojoGuiYNAN MojoGui_cocoa_promptynan(const char *title,
 
 
 static boolean MojoGui_cocoa_start(const char *title,
-                                   const char *package_name
+                                   const char *package_name,
                                    const MojoGuiSplash *splash)
 {
 printf("start\n");
