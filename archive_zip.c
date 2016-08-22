@@ -1351,7 +1351,7 @@ static PHYSFS_sint64 zip64_find_end_of_central_dir(void *io,
         /* we assume you can eat this stack if you handle Zip64 files. */
         PHYSFS_uint8 buf[256 * 1024];
         PHYSFS_uint64 len = pos - offset;
-        PHYSFS_uint32 i;
+        PHYSFS_sint32 i;
 
         if (len > sizeof (buf))
             len = sizeof (buf);
