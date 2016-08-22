@@ -107,7 +107,6 @@ INCLUDE_DIRECTORIES(lua/src)
 IF(WINDOWS)
     ADD_DEFINITIONS(-DPLATFORM_WINDOWS=1)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS=1)
-    SET(USES_WINMAIN WIN32)
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} shell32)
 ENDIF(WINDOWS)
 
@@ -117,7 +116,11 @@ IF(MACOSX)
         ADD_DEFINITIONS(-DMAC_OS_X_VERSION_MIN_REQUIRED=1020)
         SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} "-mmacosx-version-min=10.2")
     ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES ppc)
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} "-framework Carbon")
+    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} misc/MojoSetup.xib)
+    set_source_files_properties(misc/MojoSetup.xib
+        PROPERTIES
+            MACOSX_PACKAGE_LOCATION Resources
+    )
 ENDIF(MACOSX)
 
 IF(BEOS)
@@ -194,7 +197,10 @@ SET(BZLIB_SRCS
     ${BZLIB_DIR}/compress.c
     ${BZLIB_DIR}/decompress.c
     ${BZLIB_DIR}/bzlib.c
+    ${BZLIB_DIR}/bzlib.h
+    ${BZLIB_DIR}/bzlib_private.h
 )
+source_group(bzip FILES ${BZLIB_SRCS})
 
 SET(LIBLZMA_DIR liblzma)
 SET(LIBLZMA_SRCS
@@ -233,6 +239,7 @@ SET(LIBLZMA_SRCS
     ${LIBLZMA_DIR}/simple/sparc.c
     ${LIBLZMA_DIR}/simple/x86.c
 )
+source_group(lzma FILES ${LIBLZMA_SRCS})
 
 SET(LIBFETCH_DIR libfetch)
 SET(LIBFETCH_SRCS
@@ -241,6 +248,7 @@ SET(LIBFETCH_SRCS
     ${LIBFETCH_DIR}/ftp.c
     ${LIBFETCH_DIR}/http.c
 )
+source_group(libfetch FILES ${LIBFETCH_SRCS})
 
 SET(LUA_DIR lua)
 SET(LUA_SRCS
@@ -272,12 +280,15 @@ SET(LUA_PARSER_SRCS
     ${LUA_DIR}/src/llex.c
     ${LUA_DIR}/src/lcode.c
 )
+source_group(Lua FILES ${LUA_SRCS} ${LUA_PARSER_SRCS})
 
 SET(MOJOSETUP_SRCS
     buildver.c
     mojosetup.c
     gui.c
+    gui.h
     fileio.c
+    fileio.h
     archive_zip.c
     archive_tar.c
     archive_uz2.c
@@ -286,9 +297,12 @@ SET(MOJOSETUP_SRCS
     checksum_crc32.c
     checksum_md5.c
     checksum_sha1.c
+    platform.h
     platform_unix.c
     platform_windows.c
     lua_glue.c
+    lua_glue.h
+    universal.h
     ${LUA_SRCS}
 )
 
@@ -492,7 +506,7 @@ IF(MACOSX)
         ELSE(MOJOSETUP_GUI_COCOA_STATIC)
             MOJOSETUP_ADD_LIBRARY(mojosetupgui_cocoa gui_cocoa.m)
             TARGET_LINK_LIBRARIES(mojosetupgui_cocoa
-                "-framework Carbon -framework Cocoa -mmacosx-version-min=10.2"
+                "-framework Cocoa -mmacosx-version-min=10.2"
             )
         ENDIF(MOJOSETUP_GUI_COCOA_STATIC)
     ENDIF(MOJOSETUP_GUI_COCOA)
@@ -712,7 +726,7 @@ ENDIF(MOJOSETUP_USES_SOCKETS)
 # Middleware...
 
 IF(MOJOSETUP_NEED_ZLIB)
-    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} miniz.c)
+    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} miniz.c miniz.h)
 ENDIF(MOJOSETUP_NEED_ZLIB)
 
 IF(MOJOSETUP_NEED_BZLIB)
@@ -818,7 +832,7 @@ IF(MOJOSETUP_BUILD_LUAC)
     ADD_CUSTOM_TARGET(lua mojoluac -p ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.lua)
 ENDIF(MOJOSETUP_BUILD_LUAC)
 
-ADD_EXECUTABLE(mojosetup ${USES_WINMAIN} ${MOJOSETUP_SRCS} ${OPTIONAL_SRCS})
+ADD_EXECUTABLE(mojosetup MACOSX_BUNDLE WIN32 ${MOJOSETUP_SRCS} ${OPTIONAL_SRCS})
 TARGET_LINK_LIBRARIES(mojosetup ${OPTIONAL_LIBS})
 SET(MOJOSETUP_TARGETS "${MOJOSETUP_TARGETS};mojosetup")
 
