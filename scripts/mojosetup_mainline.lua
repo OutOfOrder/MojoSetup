@@ -1310,10 +1310,14 @@ local function do_install(install)
     MojoSetup.installed_menu_items = false
 
     -- !!! FIXME: need a cmdline to automate cdkey entry?
-    local skipeulas = MojoSetup.cmdline("i-agree-to-all-licenses")
-    local skipreadmes = MojoSetup.cmdline("noreadme")
-    local skipoptions = MojoSetup.cmdline("nooptions")
-    local skipprompt = MojoSetup.cmdline("noprompt")
+    local silent = MojoSetup.cmdline("silent")
+    local skipeulas = silent or MojoSetup.cmdline("i-agree-to-all-licenses")
+    local skipreadmes = silent or MojoSetup.cmdline("noreadme")
+    local skipoptions = silent or MojoSetup.cmdline("nooptions")
+    local skipprompt = silent or MojoSetup.cmdline("noprompt")
+    if silent then
+        MojoSetup.forceoverwrite = true
+    end
 
     -- !!! FIXME: try to sanity check everything we can here
     -- !!! FIXME:  (unsupported URLs, bogus media IDs, etc.)
