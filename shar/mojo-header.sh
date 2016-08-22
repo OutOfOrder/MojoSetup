@@ -1,6 +1,8 @@
 cat << EOF  > "$archname"
 #!/bin/sh
 # This script was generated using Makeself $MS_VERSION
+# The generated code is orginally based on 'makeself-header.sh' from Makeself,
+# with modifications for mojosetup.
 
 CRCsum="$CRCsum"
 MD5="$MD5sum"
@@ -12,6 +14,7 @@ scriptargs="$SCRIPTARGS"
 targetdir="$archdirname"
 filesizes="$filesizes"
 keep=$KEEP
+customtarget=n
 # save off this scripts path so the installer can find it
 export MAKESELF_SHAR=\$( cd \`dirname \$0\` && pwd )/\`basename \$0\`
 
@@ -60,25 +63,24 @@ MS_dd()
 MS_Help()
 {
     cat << EOH >&2
-Makeself version $MS_VERSION
- 1) Getting help or info about \$0 :
-  \$0 --help   Print this message
-  \$0 --info   Print embedded info : title, default target directory, embedded script ...
-  \$0 --list   Print the list of files in the archive
-  \$0 --check  Checks integrity of the archive
- 
- 2) Running \$0 :
-  \$0 [options] [--] [additional arguments to embedded script]
-  with following options (in that order)
-  --confirm             Ask before running embedded script
-  --noexec              Do not run embedded script
-  --keep                Do not erase target directory after running
-			the embedded script
-  --nox11               Do not spawn an xterm
-  --nochown             Do not give the extracted files to the current user
-  --target NewDirectory Extract in NewDirectory
-  --tar arg1 [arg2 ...] Access the contents of the archive through the tar command
-  --                    Following arguments will be passed to the embedded script
+Usage: \$0 [options]"
+
+[options] can be one of the following things (all are optional):
+
+General:
+--help   Print this message
+--info   Print info about this installer.
+--check  Check integrity of the archive
+
+Advanced:
+--keep                      Do not erase target directory after running the embedded
+                            script
+--nox11                     Do not spawn an xterm
+--target NewDirectory       Extract directly to NewDirectory
+                            default is a temporary directory
+                            directory path can be either absolute or relative
+--tar arg1 [arg2 ...]       Access the contents of the archive through the tar command
+--                          Following arguments will be passed to the embedded script
 EOH
 }
 
@@ -86,10 +88,10 @@ MS_Check()
 {
     OLD_PATH="\$PATH"
     PATH=\${GUESS_MD5_PATH:-"\$OLD_PATH:/bin:/usr/bin:/sbin:/usr/local/ssl/bin:/usr/local/bin:/opt/openssl/bin"}
-	MD5_ARG=""
+    MD5_ARG=""
     MD5_PATH=\`exec <&- 2>&-; which md5sum || type md5sum\`
     test -x "\$MD5_PATH" || MD5_PATH=\`exec <&- 2>&-; which md5 || type md5\`
-	test -x "\$MD5_PATH" || MD5_PATH=\`exec <&- 2>&-; which digest || type digest\`
+    test -x "\$MD5_PATH" || MD5_PATH=\`exec <&- 2>&-; which digest || type digest\`
     PATH="\$OLD_PATH"
 
     MS_Printf "Verifying archive integrity..."
@@ -98,45 +100,45 @@ MS_Check()
     i=1
     for s in \$filesizes
     do
-		crc=\`echo \$CRCsum | cut -d" " -f\$i\`
-		if test -x "\$MD5_PATH"; then
-			if test \`basename \$MD5_PATH\` = digest; then
-				MD5_ARG="-a md5"
-			fi
-			md5=\`echo \$MD5 | cut -d" " -f\$i\`
-			if test \$md5 = "00000000000000000000000000000000"; then
-				test x\$verb = xy && echo " \$1 does not contain an embedded MD5 checksum." >&2
-			else
-				md5sum=\`MS_dd "\$1" \$offset \$s | eval "\$MD5_PATH \$MD5_ARG" | cut -b-32\`;
-				if test "\$md5sum" != "\$md5"; then
-					echo "Error in MD5 checksums: \$md5sum is different from \$md5" >&2
-					exit 2
-				else
-					test x\$verb = xy && MS_Printf " MD5 checksums are OK." >&2
-				fi
-				crc="0000000000"; verb=n
-			fi
-		fi
-		if test \$crc = "0000000000"; then
-			test x\$verb = xy && echo " \$1 does not contain a CRC checksum." >&2
-		else
-			sum1=\`MS_dd "\$1" \$offset \$s | CMD_ENV=xpg4 cksum | awk '{print \$1}'\`
-			if test "\$sum1" = "\$crc"; then
-				test x\$verb = xy && MS_Printf " CRC checksums are OK." >&2
-			else
-				echo "Error in checksums: \$sum1 is different from \$crc"
-				exit 2;
-			fi
-		fi
-		i=\`expr \$i + 1\`
-		offset=\`expr \$offset + \$s\`
+        crc=\`echo \$CRCsum | cut -d" " -f\$i\`
+        if test -x "\$MD5_PATH"; then
+            if test \`basename \$MD5_PATH\` = digest; then
+                MD5_ARG="-a md5"
+            fi
+            md5=\`echo \$MD5 | cut -d" " -f\$i\`
+            if test \$md5 = "00000000000000000000000000000000"; then
+                test x\$verb = xy && echo " \$1 does not contain an embedded MD5 checksum." >&2
+            else
+                md5sum=\`MS_dd "\$1" \$offset \$s | eval "\$MD5_PATH \$MD5_ARG" | cut -b-32\`;
+                if test "\$md5sum" != "\$md5"; then
+                    echo "Error in MD5 checksums: \$md5sum is different from \$md5" >&2
+                    exit 2
+                else
+                    test x\$verb = xy && MS_Printf " MD5 checksums are OK." >&2
+                fi
+                crc="0000000000"; verb=n
+            fi
+        fi
+        if test \$crc = "0000000000"; then
+            test x\$verb = xy && echo " \$1 does not contain a CRC checksum." >&2
+        else
+            sum1=\`MS_dd "\$1" \$offset \$s | CMD_ENV=xpg4 cksum | awk '{print \$1}'\`
+            if test "\$sum1" = "\$crc"; then
+                test x\$verb = xy && MS_Printf " CRC checksums are OK." >&2
+            else
+                echo "Error in checksums: \$sum1 is different from \$crc" >&2
+                exit 2;
+            fi
+        fi
+        i=\`expr \$i + 1\`
+        offset=\`expr \$offset + \$s\`
     done
     echo " All good."
 }
 
 UnTAR()
 {
-    tar \$1vf - 2>&1 || { echo Extraction failed. > /dev/tty; kill -15 \$$; }
+    tar \$1vf - 2>&1 || { echo Extraction failed! Please try another temporary directory that has sufficient space, permissions etc. by invoking the installer with the --target option. > /dev/tty; kill -15 \$$; }
 }
 
 finish=true
@@ -152,104 +154,103 @@ while true
 do
     case "\$1" in
     -h | --help)
-	MS_Help
-	exit 0
+        MS_Help
+        exit 0
 	;;
     --info)
-	echo Identification: "\$label"
-	echo Target directory: "\$targetdir"
-	echo Uncompressed size: $USIZE KB
-	echo Compression: $COMPRESS
-	echo Date of packaging: $DATE
-	echo Built with Makeself version $MS_VERSION on $OSTYPE
-	if test x"$copy" = xcopy; then
-		echo "Archive will copy itself to a temporary location"
-	fi
-	exit 0
-	;;
+    echo Identification: "\$label"
+    echo Uncompressed size: $USIZE KB
+    echo Compression: $COMPRESS
+    echo Date of packaging: $DATE
+    echo Built with Makeself version $MS_VERSION on $OSTYPE
+    if test x"$copy" = xcopy; then
+        echo "Archive will copy itself to a temporary location"
+    fi
+    exit 0
+    ;;
     --dumpconf)
-	echo LABEL=\"\$label\"
-	echo SCRIPT=\"\$script\"
-	echo SCRIPTARGS=\"\$scriptargs\"
-	echo archdirname=\"$archdirname\"
-	echo KEEP=$KEEP
-	echo COMPRESS=$COMPRESS
-	echo filesizes=\"\$filesizes\"
-	echo CRCsum=\"\$CRCsum\"
-	echo MD5sum=\"\$MD5\"
-	echo OLDUSIZE=$USIZE
-	echo OLDSKIP=`expr $SKIP + 1`
-	exit 0
-	;;
+    echo LABEL=\"\$label\"
+    echo SCRIPT=\"\$script\"
+    echo SCRIPTARGS=\"\$scriptargs\"
+    echo archdirname=\"$archdirname\"
+    echo KEEP=$KEEP
+    echo COMPRESS=$COMPRESS
+    echo filesizes=\"\$filesizes\"
+    echo CRCsum=\"\$CRCsum\"
+    echo MD5sum=\"\$MD5\"
+    echo OLDUSIZE=$USIZE
+    echo OLDSKIP=`expr $SKIP + 1`
+    exit 0
+    ;;
     --list)
-	echo Target directory: \$targetdir
-	offset=\`head -n $SKIP "\$0" | wc -c | tr -d " "\`
-	for s in \$filesizes
-	do
-	    MS_dd "\$0" \$offset \$s | eval "$GUNZIP_CMD" | UnTAR t
-	    offset=\`expr \$offset + \$s\`
-	done
-	exit 0
-	;;
-	--tar)
-	offset=\`head -n $SKIP "\$0" | wc -c | tr -d " "\`
-	arg1="\$2"
-	shift 2
-	for s in \$filesizes
-	do
-	    MS_dd "\$0" \$offset \$s | eval "$GUNZIP_CMD" | tar "\$arg1" - \$*
-	    offset=\`expr \$offset + \$s\`
-	done
-	exit 0
-	;;
+    echo Target directory: \$targetdir
+    offset=\`head -n $SKIP "\$0" | wc -c | tr -d " "\`
+    for s in \$filesizes
+    do
+        MS_dd "\$0" \$offset \$s | eval "$GUNZIP_CMD" | UnTAR t
+        offset=\`expr \$offset + \$s\`
+    done
+    exit 0
+    ;;
+    --tar)
+    offset=\`head -n $SKIP "\$0" | wc -c | tr -d " "\`
+    arg1="\$2"
+    shift 2
+    for s in \$filesizes
+    do
+        MS_dd "\$0" \$offset \$s | eval "$GUNZIP_CMD" | tar "\$arg1" - \$*
+        offset=\`expr \$offset + \$s\`
+    done
+    exit 0
+    ;;
     --check)
-	MS_Check "\$0" y
-	exit 0
-	;;
+    MS_Check "\$0" y
+    exit 0
+    ;;
     --confirm)
-	verbose=y
-	shift
-	;;
-	--noexec)
-	script=""
-	shift
-	;;
+    verbose=y
+    shift
+    ;;
+    --noexec)
+    script=""
+    shift
+    ;;
     --keep)
-	keep=y
-	shift
-	;;
+    keep=y
+    shift
+    ;;
     --target)
-	keep=y
-	targetdir=\${2:-.}
-	shift 2
+    customtarget=y
+    targetdir=\${2:-.}
+    shift 2
 	;;
     --nox11)
-	nox11=y
-	shift
-	;;
+    nox11=y
+    shift
+    ;;
     --nochown)
-	ownership=n
-	shift
-	;;
+    ownership=n
+    shift
+    ;;
     --xwin)
-	finish="echo Press Return to close this window...; read junk"
-	xterm_loop=1
-	shift
-	;;
+    finish="echo Press Return to close this window...; read junk"
+    xterm_loop=1
+    shift
+    ;;
     --phase2)
-	copy=phase2
-	shift
-	;;
+    copy=phase2
+    shift
+    ;;
     --)
-	shift
-	break ;;
+    shift
+    break ;;
     -*)
-	echo Unrecognized flag : "\$1" >&2
-	MS_Help
-	exit 1
-	;;
+    echo Unrecognized flag : "\$1" >&2
+    MS_Help
+    exit 1
+    ;;
     *)
-	break ;;
+    break ;;
     esac
 done
 
@@ -257,8 +258,8 @@ case "\$copy" in
 copy)
     tmpdir=\$TMPROOT/makeself.\$RANDOM.\`date +"%y%m%d%H%M%S"\`.\$\$
     mkdir "\$tmpdir" || {
-	echo "Could not create temporary directory \$tmpdir" >&2
-	exit 1
+    echo "Could not create temporary directory \$tmpdir" >&2
+    exit 1
     }
     SCRIPT_COPY="\$tmpdir/makeself"
     echo "Copying to a temporary location..." >&2
@@ -274,7 +275,7 @@ esac
 
 if test "\$nox11" = "n"; then
     if tty -s; then                 # Do we have a terminal?
-	:
+    :
     else
         if test x"\$DISPLAY" != x -a x"\$xterm_loop" = x; then  # No, but do we have X?
             if xset q > /dev/null 2>&1; then # Check for valid DISPLAY variable
@@ -299,21 +300,29 @@ fi
 if test "\$targetdir" = "."; then
     tmpdir="."
 else
-    if test "\$keep" = y; then
-	echo "Creating directory \$targetdir" >&2
-	tmpdir="\$targetdir"
-	dashp="-p"
+    if test "\$keep" = y -o "\$customtarget" = y; then
+        echo "Creating directory \$targetdir" >&2
+        tmpdir="\$targetdir"
+        dashp="-p"
     else
-	tmpdir="\$TMPROOT/selfgz\$\$\$RANDOM"
-	dashp=""
+        tmpdir="\$TMPROOT/selfgz\$\$\$RANDOM"
+        dashp=""
     fi
     mkdir \$dashp \$tmpdir || {
-	echo 'Cannot create target directory' \$tmpdir >&2
-	echo 'You should try option --target OtherDirectory' >&2
-	eval \$finish
-	exit 1
+    echo 'Cannot create target directory' \$tmpdir >&2
+    echo 'You should try option --target OtherDirectory' >&2
+    eval \$finish
+    exit 1
     }
 fi
+
+# Test if directory is executable
+cat << EOLEX > "\$tmpdir/exec_test"
+#!/bin/sh
+exit 0
+EOLEX
+(chmod +x "\$tmpdir/exec_test" && "\$tmpdir/exec_test") >/dev/null 2>&1 || (echo 'Current temporary directory (usually /tmp by default) does not seem to be executable! Please specify an alternative path by using the --target option.'; kill -15 \$$;)
+
 
 location="\`pwd\`"
 if test x\$SETUP_NOCHECK != x1; then
@@ -322,11 +331,11 @@ fi
 offset=\`head -n $SKIP "\$0" | wc -c | tr -d " "\`
 
 if test x"\$verbose" = xy; then
-	MS_Printf "About to extract $USIZE KB in \$tmpdir ... Proceed ? [Y/n] "
-	read yn
-	if test x"\$yn" = xn; then
-		eval \$finish; exit 1
-	fi
+    MS_Printf "About to extract $USIZE KB in \$tmpdir ... Proceed ? [Y/n] "
+    read yn
+    if test x"\$yn" = xn; then
+        eval \$finish; exit 1
+    fi
 fi
 
 MS_Printf "Uncompressing \$label"
@@ -336,25 +345,27 @@ if test "\$keep" = n; then
 fi
 
 leftspace=\`MS_diskspace \$tmpdir\`
-if test \$leftspace -lt $USIZE; then
-    echo
-    echo "Not enough space left in "\`dirname \$tmpdir\`" (\$leftspace KB) to decompress \$0 ($USIZE KB)" >&2
-    if test "\$keep" = n; then
-        echo "Consider setting TMPDIR to a directory with more free space."
-   fi
-    eval \$finish; exit 1
+if test -n "\$leftspace"; then
+    if test "\$leftspace" -lt $USIZE; then
+        echo
+        echo "Not enough space left in "\`dirname \$tmpdir\`" (\$leftspace KB) to decompress \$0 ($USIZE KB)" >&2
+        if test "\$keep" = n; then
+            echo "Consider using the --target option with a directory that has sufficient space."
+        fi
+        eval \$finish; exit 1
+    fi
 fi
 
 for s in \$filesizes
 do
     if MS_dd "\$0" \$offset \$s | eval "$GUNZIP_CMD" | ( cd "\$tmpdir"; UnTAR x ) | MS_Progress; then
-		if test x"\$ownership" = xy; then
-			(PATH=/usr/xpg4/bin:\$PATH; cd "\$tmpdir"; chown -R \`id -u\` .;  chgrp -R \`id -g\` .)
-		fi
+        if test x"\$ownership" = xy; then
+            (PATH=/usr/xpg4/bin:\$PATH; cd "\$tmpdir"; chown -R \`id -u\` .;  chgrp -R \`id -g\` .)
+        fi
     else
-		echo
-		echo "Unable to decompress \$0" >&2
-		eval \$finish; exit 1
+		echo >&2
+        echo "Unable to decompress \$0" >&2
+        eval \$finish; exit 1
     fi
     offset=\`expr \$offset + \$s\`
 done
@@ -364,16 +375,16 @@ cd "\$tmpdir"
 res=0
 if test x"\$script" != x; then
     if test x"\$verbose" = xy; then
-		MS_Printf "OK to execute: \$script \$scriptargs \$* ? [Y/n] "
-		read yn
-		if test x"\$yn" = x -o x"\$yn" = xy -o x"\$yn" = xY; then
-			eval \$script \$scriptargs \$*; res=\$?;
-		fi
+        MS_Printf "OK to execute: \$script \$scriptargs \$* ? [Y/n] "
+        read yn
+        if test x"\$yn" = x -o x"\$yn" = xy -o x"\$yn" = xY; then
+            eval \$script \$scriptargs \$*; res=\$?;
+        fi
     else
-		eval \$script \$scriptargs \$*; res=\$?
+        eval \$script \$scriptargs \$*; res=\$?
     fi
     if test \$res -ne 0; then
-		test x"\$verbose" = xy && echo "The program '\$script' returned an error code (\$res)" >&2
+        test x"\$verbose" = xy && echo "The program '\$script' returned an error code (\$res)" >&2
     fi
 fi
 if test "\$keep" = n; then
@@ -381,4 +392,6 @@ if test "\$keep" = n; then
     /bin/rm -rf \$tmpdir
 fi
 eval \$finish; exit \$res
+# Extra newline, because in very rare cases (OpenSolaris) stub is directly added after script
+
 EOF
