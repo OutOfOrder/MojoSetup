@@ -1,3 +1,4 @@
 syntax:glob
 cmake-build
-
+shar/mojosetup
+shar/mojosetup.sh

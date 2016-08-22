@@ -138,6 +138,14 @@ static boolean trySpawnTerminalGui(void)
     return (MojoGui_initGuiPlugin() != NULL);
 } // trySpawnTerminalGui
 
+static void MojoSetup_cleanmarker(void)
+{
+    const char*marker;
+    if ((marker = getenv("MOJOSETUP_MARKER")) != NULL)
+    {
+        MojoPlatform_unlink(marker);
+    }
+} // MojoSetup_cleanmarker
 
 static boolean initEverything(void)
 {
@@ -185,6 +193,7 @@ static void deinitEverything(void)
     MojoGui_deinitGuiPlugin();
     MojoArchive_deinitBaseArchive();
     MojoLog_deinitLogging();
+    MojoSetup_cleanmarker();
 
     tmp = crashedmsg;
     crashedmsg = NULL;
