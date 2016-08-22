@@ -1127,6 +1127,15 @@ local function install_freedesktop_menuitem(pkg, idx, item)  -- only for Unix.
     -- Try to escape some characters...
     cmdline = '"' .. string.gsub(string.gsub(cmdline, "\"","\\\""), "%%", "%%%%") .. '"'
 
+    if item.commandlinearg then
+        local cmdlinearg = MojoSetup.format(item.commandlinearg, dest)
+        cmdlinearg = '"' .. string.gsub(string.gsub(cmdlinearg, "\"","\\\""), "%%", "%%%%") .. '"'
+
+        cmdline = cmdline .. ' ' .. cmdlinearg
+    end
+
+
+
     local t = { "[Desktop Entry]\n" }
     local function addpair(key, val)
         t[#t+1] = key
